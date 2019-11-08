@@ -127,5 +127,59 @@ object List { // `List` companion object. Contains functions for creating and wo
 	
 	/*ex3.19*/
 	def filter[A](l : List[A])(f: A=>Boolean): List[A] = 
+		l match {
+			case Nil => Nil
+			case Cons(h,t) if f(h) => filter(t)(f)
+			case Cons(h,t) if !f(h) => Cons(h, filter(t)(f))
+		}
+	
+	/*ex3.20*/
+	def flatMap[A,B](l : List[A])(f: A=>List[B]) : List[B] = 
+		l match {
+			case Nil => Nil
+			case Cons(h,t) => appendViaFoldRight(f(h), flatMap(t)(f))
+		}
+	
+	/*ex3.21*/
+	def filterViaFlatMap[A](l : List[A])(f: A=>Boolean): List[A] = 
+		flatMap[A,A](l)( (a:A) => if(f(a)) Cons(a,Nil); else Nil )
 		
+	/*ex3.22*/
+	def addElement(l1: List[Int], l2: List[Int]) : List[Int] = 
+		l1 match {
+			case Nil => l2
+			case Cons(h1,t1) => l2 match {
+				case Nil => l1
+				case Cons(h2,t2) => Cons(h1+h2, addElement(t1,t2))
+			}
+		}
+	
+	/*ex3.23*/
+	def zipWith[A](l1 : List[A], l2: List[A])(f: (A,A)=>A) : List[A] = 
+		l1 match{
+			case Nil => l2
+			case Cons(h1,t1) => l2 match {
+				case Nil => l1
+				case Cons(h2,t2) => Cons(f(h1,h2), zipWith(t1,t2)(f))
+			}
+		}
+		
+	/*ex3.24*/
+	def hasSubsequence[A](l1 : List[A], l2 : List[A]) : Boolean = 
+		l1 match {
+			case Nil => {
+				l2 match{
+					case Nil => true
+					case Cons(_,_) => false
+				}
+			}
+			
+			case Cons(h1,t1) => {
+				l2 match{
+					case Nil => true
+					case Cons(h2,t2) if(h1 == h2) => hasSubsequence(t1,t2)
+					case Cons(h2,t2) => hasSubsequence(t1, l2)
+				}
+			}
+		}
 }
