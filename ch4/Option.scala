@@ -37,6 +37,23 @@ sealed trait Option[+A] {
   def filter1(f: A => Boolean): Option[A] = 
 	flatMap(a => if(f(a)) Some(a) else None)
 	
+	
+		
+	
+	
+	def map2[A,B,C](oa: Option[A], ob:Option[B])(f: (A,B)=>C):Option[C] = 
+		oa.flatMap(a=>ob.flatMap(b=>Option.Try(f(a,b))))
+	
+	
+}
+case class Some[+A](get: A) extends Option[A]
+case object None extends Option[Nothing]
+
+object Option{
+def Try[A](a: => A):Option[A] = 
+		try Some(a)
+		catch {case e: Exception => None}
+
 	/*ex4.2*/
 	def mean(xs: Seq[Double]): Option[Double] = 
 		if(xs.isEmpty) None
@@ -44,13 +61,18 @@ sealed trait Option[+A] {
 		
 	def variance(xs: Seq[Double]): Option[Double] =
 		mean(xs).flatMap(m => mean(xs.map((x=>math.pow(x-m,2)))))
-		
-	def Try[A](a :=> A):Option[A] = 
-		try Some(a)
-		catch {case e: Exception => None}
+
+
+	def sequence[A](a: List[Option[A]]): Option[List[A]] = 
+		a match{
+			case Nil => Some(Nil)
+			case h::t => h.flatMap(hh => sequence(t).map(hh :: _))
+		}
 	
-	def map2[A,B,C](oa: Option[A], ob:Option[B])(f: (A,B)=>C):Option[C] = 
-		oa.flatMap(a=>ob.flatMap(b=>Try(f(a,b))))
+	def traverse[A,B](a: List[A])(f: A=> Option[B]):Option[List[B]] = 
+		a match{
+			case Nil => Some(Nil)
+			case h::t => f(h).flatMap( hh => traverse(t)(f).map(hh :: _))
+		}
+
 }
-case class Some[+A](get: A) extends Option[A]
-case object None extends Option[Nothing]
